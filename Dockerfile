@@ -1,10 +1,8 @@
 FROM python:3.10.7-bullseye
 
-COPY requirements.txt requirements.txt
+COPY requirements.txt .
 
 RUN pip install -r requirements.txt
-
-COPY 
 
 WORKDIR /contrans
 
