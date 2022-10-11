@@ -1,0 +1,46 @@
+import pandas as pd
+import numpy as np
+import requests
+import json
+import os
+
+propublica_token = os.environ['propublica_token']
+
+memberurl = 'https://voteview.com/static/data/out/members/HS117_members.csv'
+cvoteurl = 'https://voteview.com/static/data/out/rollcalls/HS117_rollcalls.csv'
+memvoteurl = 'https://voteview.com/static/data/out/votes/HS117_votes.csv'
+cpartyurl = 'https://voteview.com/static/data/out/parties/HS117_parties.csv'
+
+members_vv = pd.read_csv(memberurl)
+cvote_vv = pd.read_csv(cvoteurl)
+memvote_vv = pd.read_csv(memvoteurl)
+cparty_vv = pd.read_csv(cpartyurl)
+
+useragent_url = 'https://httpbin.org/user-agent'
+r = requests.get(useragent_url)
+useragent = json.loads(r.text)['user-agent']
+
+headers = {'X-API-Key': propublica_token,
+          'User-Agent': useragent,
+          'From': 'jkropko@virginia.edu'}
+
+root = 'https://api.propublica.org'
+congress = '117'
+chamber = 'house'
+memberendpoint = '/congress/v1/{congress}/{chamber}/members.json'.format(congress=congress, chamber=chamber)
+
+r = requests.get(root + memberendpoint, headers = headers)
+myjson = json.loads(r.text)
+house_pp = pd.json_normalize(myjson, record_path = ['results', 'members'])
+
+chamber = 'senate'
+memberendpoint = '/congress/v1/{congress}/{chamber}/members.json'.format(congress=congress, chamber=chamber)
+r = requests.get(root + memberendpoint, headers = headers)
+myjson = json.loads(r.text)
+senate_pp = pd.json_normalize(myjson, record_path = ['results', 'members'])
+
+billsendpoint = '/congress/v1/bills/search.json'
+myparams = {'query': ''}
+r = requests.get(root + billsendpoint, headers = headers, params = myparams)
+myjson = json.loads(r.text)
+bills_pp = pd.json_normalize(myjson, record_path = ['results', 'bills'])
