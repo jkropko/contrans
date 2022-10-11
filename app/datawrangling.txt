@@ -39,8 +39,18 @@ r = requests.get(root + memberendpoint, headers = headers)
 myjson = json.loads(r.text)
 senate_pp = pd.json_normalize(myjson, record_path = ['results', 'members'])
 
-billsendpoint = '/congress/v1/bills/search.json'
-myparams = {'query': ''}
-r = requests.get(root + billsendpoint, headers = headers, params = myparams)
-myjson = json.loads(r.text)
-bills_pp = pd.json_normalize(myjson, record_path = ['results', 'bills'])
+billsendpoint = '/congress/v1/{congress}/{chamber}/bills/{billtype}.json'.format(congress='117',
+                                                                             chamber='both',
+                                                                             billtype='introduced')
+n = 20
+i = 0
+bills_117 = pd.DataFrame()
+while n == 20:
+    myparams = {'query': '', 'offset':i}
+    r = requests.get(root + billsendpoint, headers = headers, params = myparams)
+    myjson = json.loads(r.text)
+    bills_pp = pd.json_normalize(myjson, record_path = ['results', 'bills'])
+    bills_117 = pd.concat([bills_117, bills_pp], ignore_index=True)
+    i = i + 20
+    print(i)
+    n = myjson['results'][0]['num_results']
