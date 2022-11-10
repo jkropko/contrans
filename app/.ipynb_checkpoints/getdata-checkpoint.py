@@ -4,8 +4,6 @@ import requests
 import json
 import os
 
-propublica_token = os.environ['propublica_token']
-
 def get_voteview():
     memberurl = 'https://voteview.com/static/data/out/members/HS117_members.csv'
     cvoteurl = 'https://voteview.com/static/data/out/rollcalls/HS117_rollcalls.csv'
@@ -89,4 +87,19 @@ def merge_members(members_pp, members_vv):
                                          'id':'propublica_id',
                                          'api_uri':'propublica_endpoint'}, axis=1)
     return members_total
+    
+def get_bills_pp(propublica_token, useragent, email,
+                 congress='117', chamber='both', billtype='introduced', offset=0):
+    headers = {'X-API-Key': propublica_token,
+              'User-Agent': useragent,
+              'From': email}
+    root = 'https://api.propublica.org'
+    endpoint = f'/congress/v1/{congress}/{chamber}/bills/{billtype}.json'
+    params = {'offset': offset}
+    r = requests.get(root + endpoint, headers=headers, params=params)
+    myjson = json.loads(r.text)
+    num_results = myjson['results'][0]['num_results']
+    bills = myjson['results'][0]['bills']
+    
+    return bills, num_results
     

@@ -10,6 +10,17 @@ services:
     networks:
       - dbnetwork
 
+  mongo:
+    image: mongo:latest
+    env_file:
+      - .env
+    volumes: 
+      - mongovolume:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - dbnetwork
+
   jupyter:
     # image, env, volumes, ports, etc ...
     image: contransimage
@@ -24,6 +35,7 @@ services:
  
 volumes:
   postgresdata:
+  mongovolume:
  
 networks:
   dbnetwork:
