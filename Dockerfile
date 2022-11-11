@@ -16,5 +16,6 @@ RUN npm install -g dbdocs
 WORKDIR /contrans
 
 EXPOSE 8888
+EXPOSE 27017
 
 CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root"]
