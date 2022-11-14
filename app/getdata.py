@@ -88,6 +88,16 @@ def merge_members(members_pp, members_vv):
                                          'api_uri':'propublica_endpoint'}, axis=1)
     return members_total
     
+def scrape_bill(url, email):
+    time.sleep(2)
+    r = requests.get(url, headers = {'User-Agent': getdata.get_useragent(), 'From': email})
+    myhtml = BeautifulSoup(r.text, 'html.parser')
+    try:
+        billtext = myhtml.find_all('pre')[0].text
+        return billtext
+    except:
+        return 'Bill text not yet available'
+    
 def get_bills_pp(propublica_token, useragent, email,
                  congress='117', chamber='both', billtype='introduced', offset=0):
     headers = {'X-API-Key': propublica_token,
@@ -103,3 +113,6 @@ def get_bills_pp(propublica_token, useragent, email,
     
     return bills, num_results
     
+def add_bill_text(bill_list, email):
+    updated_list = [b.update({'bill_text': getdata.scrape_bill(b['congressdotgov_url'])}, email) for b in bill_list]
+    return updated_list
