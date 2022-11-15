@@ -15,7 +15,7 @@ services:
     env_file:
       - .env
     volumes: 
-      - mongovolume:/data/db
+      - mongodata:/data/db
       - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     ports:
       - "27017:27017"
@@ -36,7 +36,7 @@ services:
  
 volumes:
   postgresdata:
-  mongovolume:
+  mongodata:
  
 networks:
   dbnetwork:
