@@ -89,8 +89,10 @@ def merge_members(members_pp, members_vv):
     return members_total
     
 def scrape_bill(url, email):
+    import time
+    from bs4 import BeautifulSoup
     time.sleep(2)
-    r = requests.get(url, headers = {'User-Agent': getdata.get_useragent(), 'From': email})
+    r = requests.get(url, headers = {'User-Agent': get_useragent(), 'From': email})
     myhtml = BeautifulSoup(r.text, 'html.parser')
     try:
         billtext = myhtml.find_all('pre')[0].text
@@ -114,5 +116,6 @@ def get_bills_pp(propublica_token, useragent, email,
     return bills, num_results
     
 def add_bill_text(bill_list, email):
-    updated_list = [b.update({'bill_text': getdata.scrape_bill(b['congressdotgov_url'])}, email) for b in bill_list]
-    return updated_list
+    for b in bill_list:
+        b.update({'bill_text': scrape_bill(b['congressdotgov_url'] + '/text?format=txt', email)})
+    return bill_list
