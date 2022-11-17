@@ -3,6 +3,10 @@ import numpy as np
 import requests
 import json
 import os
+import shutil
+from bs4 import BeautifulSoup
+import io 
+import zipfile 
 
 def get_voteview():
     memberurl = 'https://voteview.com/static/data/out/members/HS117_members.csv'
@@ -88,18 +92,6 @@ def merge_members(members_pp, members_vv):
                                          'api_uri':'propublica_endpoint'}, axis=1)
     return members_total
     
-def scrape_bill(url, email):
-    import time
-    from bs4 import BeautifulSoup
-    time.sleep(2)
-    r = requests.get(url, headers = {'User-Agent': get_useragent(), 'From': email})
-    myhtml = BeautifulSoup(r.text, 'html.parser')
-    try:
-        billtext = myhtml.find_all('pre')[0].text
-        return billtext
-    except:
-        return 'Bill text not yet available'
-    
 def get_bills_pp(propublica_token, useragent, email,
                  congress='117', chamber='both', billtype='introduced', offset=0):
     headers = {'X-API-Key': propublica_token,
@@ -114,8 +106,57 @@ def get_bills_pp(propublica_token, useragent, email,
     bills = myjson['results'][0]['bills']
     
     return bills, num_results
+
+def download_govinfo(path='/contrans/billsdata', congress = ['117'], session = ['1','2']):
+    billtype = ['hconres','hjres','hr','hres','s','sconres','sjres','sres']
+    root = 'https://www.govinfo.gov/bulkdata/BILLS/'
+    urls = [root]
+    urls = [u + c + '/' + s + '/' + b + '/BILLS-' + c + '-' + s + '-' + b + '.zip'
+            for u in urls 
+            for c in congress 
+            for s in session
+            for b in billtype]
+    for u in urls:   
+        r = requests.get(u)
+        z = zipfile.ZipFile(io.BytesIO(r.content))
+        z.extractall(path)
+
+
+def get_bill_files(path='/contrans/billsdata', if_exists='ignore'):
+    if not os.path.exists(path):
+        os.makedirs(path)
+        download_govinfo(path)
+        return
+    if os.path.exists(path) and if_exists=='replace':
+        shutil.rmtree(path)
+        os.makedirs(path)
+        download_govinfo(path)
+        return
+    if os.path.exists(path) and if_exists=='ignore':
+        return
+    else:
+        return
     
-def add_bill_text(bill_list, email):
-    for b in bill_list:
-        b.update({'bill_text': scrape_bill(b['congressdotgov_url'] + '/text?format=txt', email)})
-    return bill_list
+def add_bill_text(bill, path='/contrans/billsdata'):
+    slug = bill['bill_slug']
+    
+    # Find the bill in /billsdata
+    try:
+        billfile = [f for f in os.listdir(path) if slug in f]
+        billfile = billfile[0]
+    except:
+        return
+    
+    # Load the file as string
+    with open(f"{path}/{billfile}") as f:
+        xml_data = f.read()
+    
+    # Parse the file with lxml and beautifulsoup
+    mysoup = BeautifulSoup(xml_data, features="xml")
+    
+    # Extract text
+    bill_text = [m.text for m in mysoup.find_all('text')]
+    bill_text = ' '.join(bill_text)
+    
+    # update json record
+    bill.update({'bill_text': bill_text})
