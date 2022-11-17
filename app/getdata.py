@@ -160,3 +160,31 @@ def add_bill_text(bill, path='/contrans/billsdata'):
     
     # update json record
     bill.update({'bill_text': bill_text})
+    
+def build_mongo_db(mongo_username, mongo_password, mongo_init_db, propublica_token, email):
+    
+    get_bill_files(if_exists='ignore')
+    
+    useragent = get_useragent()
+    
+    myclient = pymongo.MongoClient(f"mongodb://{mongo_username}:{mongo_password}@mongo:27017/{mongo_init_db}?authSource=admin")
+    
+    contrans_db = myclient['contrans']
+    
+    collist = contrans_db.list_collection_names()
+    if "bills" in collist:
+      contrans_db.bills.drop()
+
+    bills = contrans_db['bills']
+    
+    i = 0
+    while 1==1:
+        bills_list, num_results = getdata.get_bills_pp(propublica_token, useragent, email=email, offset=20*i)
+        if num_results == 0:
+            print('Done!')
+            break
+        print(f'Now getting bills {20*i + 1} through {20*(i+1)}')
+        for b in bills_list:
+            getdata.add_bill_text(b)
+        bills_insert = bills.insert_many(bills_list)
+        i += 1
