@@ -2,7 +2,7 @@ Project contrans_database {
   database_type: 'PostgreSQL'
   Note: '''
     # Congress Transparency Database
-    ### Version 0.0.1
+    ### Version 0.0.2
     The data come from voteview.org and Propublica's Congress API.
   '''
 }
@@ -76,11 +76,11 @@ Table member_vote as V {
   note: "Individual members' votes on each roll call"
 }
 Table charwords as C {
-    propublica_id varchar [pk]
+    sponsor_id varchar [pk]
     word varchar [pk]
     tf_idf float
 }
 Ref: M.icpsr < V.icpsr
 Ref: R.rollnumber < V.rollnumber
 Ref: R.chamber < V.chamber
-Ref: C.propublica_id > M.propublica_id
+Ref: C.sponsor_id > M.propublica_id
