@@ -11,13 +11,14 @@ RUN pip install -r requirements.txt
 RUN curl -fsSL https://deb.nodesource.com/setup_19.x | bash - &&\
 apt-get install -y nodejs
 
-
-
 RUN npm install -g dbdocs
+
+RUN jupyter lab build -y && jupyter lab clean -y
 
 WORKDIR /contrans
 
 EXPOSE 8888
 EXPOSE 27017
+EXPOSE 8050
 
 CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root"]
