@@ -21,4 +21,6 @@ EXPOSE 8888
 EXPOSE 27017
 EXPOSE 8050
 
-CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root"]
+#CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root"]
+
+CMD ["python", "/contrans/app/app.py"]
